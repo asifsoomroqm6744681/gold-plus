@@ -1,0 +1,5 @@
+{
+  "name": "GoldPulse",
+  "description": "A professional, real-time Gold Price Dashboard with multi-language support (EN/AR), live trend analysis, karat calculations, and a comprehensive admin panel for configuration.",
+  "requestFramePermissions": []
+}
