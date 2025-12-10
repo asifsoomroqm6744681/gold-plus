@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { LivePriceCard } from './LivePriceCard';
@@ -37,10 +38,10 @@ export const Dashboard: React.FC = () => {
           {/* Divider / Notice */}
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-slate-800"></div>
+              <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-slate-950 px-3 text-xs text-gold-500 font-medium animate-pulse tracking-widest uppercase">
+              <span className="bg-slate-50 dark:bg-slate-950 px-3 text-xs text-gold-600 dark:text-gold-500 font-medium animate-pulse tracking-widest uppercase">
                 {t('making_charge_notice')}
               </span>
             </div>
@@ -57,9 +58,9 @@ export const Dashboard: React.FC = () => {
                  : formatNumber(charge.value);
 
                return (
-                <div key={charge.id} className="bg-slate-900 p-2 rounded-lg shadow-sm text-center border border-slate-800 hover:border-gold-500/50 transition-all hover:-translate-y-0.5 group">
-                   <h3 className="text-gold-400 font-serif font-bold text-xs uppercase tracking-widest mb-0.5 group-hover:text-gold-300 truncate">{displayName}</h3>
-                   <p className="text-xl font-bold text-slate-200 group-hover:text-white leading-tight">{displayValue}</p>
+                <div key={charge.id} className="bg-white dark:bg-slate-900 p-2 rounded-lg shadow-sm text-center border border-slate-200 dark:border-slate-800 hover:border-gold-500/50 transition-all hover:-translate-y-0.5 group">
+                   <h3 className="text-gold-600 dark:text-gold-400 font-serif font-bold text-xs uppercase tracking-widest mb-0.5 group-hover:text-gold-500 dark:group-hover:text-gold-300 truncate">{displayName}</h3>
+                   <p className="text-xl font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white leading-tight">{displayValue}</p>
                 </div>
               );
             })}

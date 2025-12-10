@@ -26,22 +26,23 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
     const saved = localStorage.getItem('gold_settings');
     let parsedSettings = saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
 
-    // Migration for new field structure
+    // Migration logic
     if (!parsedSettings.premiumMarkupValues) {
-        // If old single premium value exists, migrate it to all karats
         const oldVal = parsedSettings.premiumMarkupValue || 0;
         const newValues: {[key: number]: number} = {};
         KARATS.forEach(k => newValues[k] = oldVal);
-        
         parsedSettings.premiumMarkupValues = newValues;
     }
     
-    // Ensure all new keys exist with defaults if missing
+    // Ensure new fields have defaults
     return { 
       ...DEFAULT_SETTINGS, 
       ...parsedSettings,
       premium10Tola: parsedSettings.premium10Tola ?? DEFAULT_SETTINGS.premium10Tola,
       premiumGinni: parsedSettings.premiumGinni ?? DEFAULT_SETTINGS.premiumGinni,
+      fetchInterval: parsedSettings.fetchInterval ?? DEFAULT_SETTINGS.fetchInterval,
+      theme: parsedSettings.theme ?? DEFAULT_SETTINGS.theme,
+      adminPin: parsedSettings.adminPin ?? DEFAULT_SETTINGS.adminPin,
     };
   });
 
@@ -64,6 +65,17 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
     localStorage.setItem('gold_settings', JSON.stringify(settings));
   }, [settings]);
 
+  // Theme Logic
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      root.classList.add('dark');
+    }
+  }, [settings.theme]);
+
+  // Language Logic
   useEffect(() => {
     document.documentElement.dir = 'ltr';
     document.documentElement.lang = language;
@@ -87,12 +99,16 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
     return () => clearInterval(intervalId);
   }, [settings.autoRotateLanguage, settings.rotateInterval]);
 
+  // Dynamic Price Refresh
   useEffect(() => {
+    const intervalTime = (settings.fetchInterval || 120) * 1000;
+    
     const interval = setInterval(() => {
       refreshPrice();
-    }, 120000); // 2 minutes
+    }, Math.max(intervalTime, 5000)); // Minimum 5s safety
+
     return () => clearInterval(interval);
-  }, [settings]);
+  }, [settings.fetchInterval, settings.apiKey, settings.isDemoMode, settings.useManualPrice]);
 
   const t = (key: string) => {
     return TRANSLATIONS[key]?.[language] || key;
@@ -124,7 +140,9 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
   };
 
   const verifyAdmin = (pin: string): boolean => {
-    if (pin === ADMIN_PIN) {
+    // Check against settings PIN (dynamic) or fallback
+    const validPin = settings.adminPin || ADMIN_PIN;
+    if (pin === validPin) {
         setIsAdmin(true);
         return true;
     }

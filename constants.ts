@@ -12,6 +12,8 @@ export const DEFAULT_CHARGES: Charge[] = [
   { id: '8', name: 'KHWATI', type: 'fixed', value: 4.0, subtitle: '4 - 3.5' },
 ];
 
+export const ADMIN_PIN = '123456'; // Default Fallback PIN
+
 export const DEFAULT_SETTINGS: AppSettings = {
   apiKey: '2917bf5d71e666e9905ddca2a7d2ac6b',
   isDemoMode: false, // Set to false so it uses the key immediately
@@ -33,11 +35,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   premiumGinni: 0,
   autoRotateLanguage: false,
   rotateInterval: 5,
+  
+  // New Settings Defaults
+  fetchInterval: 120, // 2 minutes
+  theme: 'dark',
+  adminPin: ADMIN_PIN,
 };
 
 export const KARATS = [24, 22, 21, 18];
-
-export const ADMIN_PIN = '123456'; // Security PIN for Admin Access
 
 export const TRANSLATIONS: Translation = {
   app_title: { en: 'Oman Gold Rate', ar: 'أسعار الذهب في عمان' },
@@ -89,6 +94,20 @@ export const TRANSLATIONS: Translation = {
   login: { en: 'Login', ar: 'دخول' },
   logout: { en: 'Logout', ar: 'خروج' },
   
+  // New Translations
+  security_settings: { en: 'Security', ar: 'الأمان' },
+  change_pin: { en: 'Change Admin PIN', ar: 'تغيير رمز الإدارة' },
+  old_pin: { en: 'Old PIN', ar: 'الرمز القديم' },
+  new_pin: { en: 'New PIN', ar: 'الرمز الجديد' },
+  confirm_pin: { en: 'Confirm New PIN', ar: 'تأكيد الرمز الجديد' },
+  pin_mismatch: { en: 'PINs do not match', ar: 'الرموز غير متطابقة' },
+  pin_incorrect: { en: 'Incorrect Old PIN', ar: 'الرمز القديم غير صحيح' },
+  pin_success: { en: 'PIN Changed Successfully', ar: 'تم تغيير الرمز بنجاح' },
+  fetch_interval: { en: 'Refresh Interval', ar: 'فترة التحديث' },
+  theme_mode: { en: 'Theme', ar: 'المظهر' },
+  theme_dark: { en: 'Dark', ar: 'داكن' },
+  theme_light: { en: 'Light', ar: 'فاتح' },
+
   // Specific Translations requested
   currency_name: { en: 'OMR', ar: 'ريال عماني' },
   karat_symbol: { en: 'Karat', ar: 'ع' },

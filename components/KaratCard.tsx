@@ -40,10 +40,10 @@ export const KaratGrid: React.FC = () => {
   }
 
   return (
-    <div className="bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-slate-800 h-full flex flex-col">
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-slate-200 dark:border-slate-800 h-full flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center shrink-0">
-        <h3 className="text-gold-400 font-bold tracking-wider uppercase text-base">Live Market Rates</h3>
+      <div className="bg-slate-50 dark:bg-gradient-to-r dark:from-slate-900 dark:to-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center shrink-0">
+        <h3 className="text-gold-600 dark:text-gold-400 font-bold tracking-wider uppercase text-base">Live Market Rates</h3>
         <div 
           className={`h-2 w-2 rounded-full animate-pulse shadow-md ${dotColor}`}
           title={dotTitle}
@@ -52,21 +52,21 @@ export const KaratGrid: React.FC = () => {
 
       <div className="flex-grow flex flex-col justify-center">
         <table className="w-full text-left border-collapse">
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {KARATS.map((karat) => {
               const price1g = calculatePrice(goldData.priceUSD, karat);
               
               return (
-                <tr key={karat} className="bg-slate-900 hover:bg-slate-800/50 transition-colors group">
-                  <td className="px-4 py-3 text-xl text-slate-300 font-bold border-r border-slate-800 w-1/3 group-hover:text-gold-200">
+                <tr key={karat} className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                  <td className="px-4 py-3 text-xl text-slate-700 dark:text-slate-300 font-bold border-r border-slate-100 dark:border-slate-800 w-1/3 group-hover:text-gold-600 dark:group-hover:text-gold-200">
                     {formatNumber(karat)} {t('karat_symbol')}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="text-2xl sm:text-3xl font-bold text-white font-mono tracking-tight group-hover:text-gold-400 transition-colors">
+                    <span className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono tracking-tight group-hover:text-gold-600 dark:group-hover:text-gold-400 transition-colors">
                       {formatNumber(price1g.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right text-slate-500 font-bold text-base w-16">
+                  <td className="px-4 py-3 text-right text-slate-400 dark:text-slate-500 font-bold text-base w-16">
                     {currencyDisplay}
                   </td>
                 </tr>
@@ -76,7 +76,7 @@ export const KaratGrid: React.FC = () => {
         </table>
       </div>
       {/* Decorative Gold Bottom Border */}
-      <div className="h-0.5 bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600 w-full shrink-0"></div>
+      <div className="h-0.5 bg-gradient-to-r from-gold-500 via-gold-300 to-gold-500 dark:from-gold-600 dark:via-gold-400 dark:to-gold-600 w-full shrink-0"></div>
     </div>
   );
 };

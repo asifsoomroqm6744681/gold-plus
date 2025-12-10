@@ -39,17 +39,17 @@ export const LivePriceCard: React.FC = () => {
       <div className="grid grid-cols-2 gap-3">
         
         {/* USD Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group hover:border-gold-500/30 transition-colors h-28">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group hover:border-gold-500/30 transition-colors h-28">
            <div className="absolute top-0 right-0 w-16 h-16 bg-gold-500/5 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none"></div>
            
-           <span className="text-base font-medium mb-1 text-slate-400">{t('usd_price')}</span>
-           <span className="text-4xl font-bold tracking-tighter text-gold-400 drop-shadow-sm font-sans leading-none">
+           <span className="text-base font-medium mb-1 text-slate-500 dark:text-slate-400">{t('usd_price')}</span>
+           <span className="text-4xl font-bold tracking-tighter text-slate-900 dark:text-gold-400 drop-shadow-sm font-sans leading-none">
              {formatNumber(priceUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
            </span>
            <div className="flex items-center gap-1.5 mt-1.5">
-             <span className="text-xs px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">{t('oz')}</span>
+             <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{t('oz')}</span>
              {trend !== 0 && (
-                <span className={`flex items-center text-xs font-bold ${trend > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`flex items-center text-xs font-bold ${trend > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                   {trend > 0 ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}
                   {formatNumber(Math.abs(trend).toFixed(2))}%
                 </span>
@@ -58,14 +58,14 @@ export const LivePriceCard: React.FC = () => {
         </div>
 
         {/* 10 Tola Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group hover:border-gold-500/30 transition-colors h-28">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group hover:border-gold-500/30 transition-colors h-28">
            <div className="absolute bottom-0 left-0 w-16 h-16 bg-gold-500/5 rounded-full blur-2xl -ml-8 -mb-8 pointer-events-none"></div>
            
-           <span className="text-base font-medium mb-1 text-slate-400">{currencyDisplay}</span>
-           <span className="text-4xl font-bold tracking-tighter text-white drop-shadow-sm font-sans leading-none">
+           <span className="text-base font-medium mb-1 text-slate-500 dark:text-slate-400">{currencyDisplay}</span>
+           <span className="text-4xl font-bold tracking-tighter text-slate-900 dark:text-white drop-shadow-sm font-sans leading-none">
              {formatNumber(price10TolaFinal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
            </span>
-           <span className="text-xs mt-1.5 px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">{t('ten_tola')}</span>
+           <span className="text-xs mt-1.5 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{t('ten_tola')}</span>
         </div>
       </div>
 
@@ -73,38 +73,38 @@ export const LivePriceCard: React.FC = () => {
       <div className="grid grid-cols-2 gap-3 flex-grow min-h-[140px]">
         
         {/* Ginni Box */}
-        <div className="col-span-2 bg-slate-900 border-2 border-gold-500 rounded-xl p-3 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.1)] relative overflow-hidden group">
+        <div className="col-span-2 bg-white dark:bg-slate-900 border-2 border-gold-500/80 dark:border-gold-500 rounded-xl p-3 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.1)] relative overflow-hidden group">
              <div className="absolute inset-0 bg-gold-500/5 pointer-events-none"></div>
              
-             <span className="text-base md:text-lg font-medium mb-1 text-gold-200 text-center uppercase tracking-wide">{t('eight_grams_21k')}</span>
+             <span className="text-base md:text-lg font-medium mb-1 text-gold-600 dark:text-gold-200 text-center uppercase tracking-wide">{t('eight_grams_21k')}</span>
              
              <div className="flex items-baseline gap-2 mb-1">
-               <span className="text-6xl md:text-7xl font-bold tracking-tighter text-gold-400 drop-shadow-md font-sans leading-none">
+               <span className="text-6xl md:text-7xl font-bold tracking-tighter text-slate-900 dark:text-gold-400 drop-shadow-md font-sans leading-none">
                  {formatNumber(ginniPriceFinal)}
                </span>
              </div>
              
-             <span className="text-sm px-2 py-0.5 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30 mt-2">{currencyDisplay}</span>
+             <span className="text-sm px-2 py-0.5 rounded bg-gold-500/10 dark:bg-gold-500/20 text-gold-700 dark:text-gold-300 border border-gold-500/20 dark:border-gold-500/30 mt-2">{currencyDisplay}</span>
         </div>
       </div>
 
       {/* Last Update Text */}
       <div className="text-center flex items-center justify-center gap-2">
-        <p className="text-slate-600 text-[10px] font-mono tracking-wide">
+        <p className="text-slate-500 dark:text-slate-600 text-[10px] font-mono tracking-wide">
           {t('last_updated')} {displayDate} {displayTime}
         </p>
         
         {/* Status Badge */}
         {isLive ? (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider border bg-green-500/10 text-green-500 border-green-500/20">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider border bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20">
                 LIVE
             </span>
         ) : apiError && !settings.isDemoMode ? (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider border bg-red-500/10 text-red-500 border-red-500/20 flex items-center gap-1" title={apiError}>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider border bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20 flex items-center gap-1" title={apiError}>
                 <AlertCircle className="w-2 h-2" /> ERROR
             </span>
         ) : (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider border bg-amber-500/10 text-amber-500 border-amber-500/20">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider border bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20">
                 DEMO
             </span>
         )}

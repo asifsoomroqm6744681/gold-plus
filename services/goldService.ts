@@ -5,22 +5,35 @@ export const generateDemoPrice = (currentPrice: number, base: number, volatility
   return Math.max(base * 0.8, currentPrice + change);
 };
 
+// Helper to fetch with CORS fallback
+const robustFetch = async (url: string, signal: AbortSignal): Promise<Response> => {
+  try {
+    // 1. Try Direct Fetch
+    const response = await fetch(url, { signal });
+    return response;
+  } catch (error: any) {
+    // 2. If Network Error (likely CORS), try Proxy
+    if (error.name !== 'AbortError') {
+      console.warn("Direct fetch failed (likely CORS). Switching to proxy...");
+      // Using allorigins as a fallback proxy for frontend-only apps
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      return fetch(proxyUrl, { signal });
+    }
+    throw error;
+  }
+};
+
 export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | null, silver: number | null, error?: string }> => {
   if (!apiKey) return { gold: null, silver: null, error: 'Missing API Key' };
   
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for proxy latency
 
-    // MetalPriceAPI returns rates relative to USD (or base).
-    // Example: 1 USD = 0.0005 XAU.
-    // Price = 1 / Rate.
+  try {
+    // MetalPriceAPI returns rates relative to USD.
     const url = `https://api.metalpriceapi.com/v1/latest?api_key=${apiKey}&base=USD&currencies=XAU,XAG`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      signal: controller.signal
-    });
+    const response = await robustFetch(url, controller.signal);
     
     clearTimeout(timeoutId);
 
@@ -35,6 +48,7 @@ export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | 
     const data = await response.json();
 
     if (data.success === false) {
+        // Handle API-level errors (e.g., plan limits)
         const info = data.error?.type || data.error?.info || 'API Error';
         return { gold: null, silver: null, error: String(info) };
     }
@@ -46,7 +60,7 @@ export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | 
         return { gold: null, silver: null, error: 'No Data for XAU' };
     }
 
-    // Invert rates to get Price per Ounce in USD
+    // Invert rates to get Price per Ounce in USD (1 / Rate)
     const goldPrice = 1 / xauRate;
     const silverPrice = xagRate ? (1 / xagRate) : null;
 
@@ -56,24 +70,24 @@ export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | 
       error: undefined
     };
   } catch (error: any) {
+    clearTimeout(timeoutId);
     console.warn("API Fetch Error:", error);
-    return { gold: null, silver: null, error: error.message || 'Unknown Error' };
+    const msg = error.name === 'AbortError' ? 'Timeout' : (error.message || 'Network Error');
+    return { gold: null, silver: null, error: msg };
   }
 };
 
 export const checkApiKey = async (apiKey: string): Promise<{ success: boolean; message: string }> => {
   if (!apiKey) return { success: false, message: 'No API Key provided' };
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); 
+
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-    
-    // Lightweight check
+    // Lightweight check asking for just USD to validate key
     const url = `https://api.metalpriceapi.com/v1/latest?api_key=${apiKey}&base=USD&currencies=USD`;
     
-    const res = await fetch(url, {
-      method: 'GET',
-      signal: controller.signal
-    });
+    const res = await robustFetch(url, controller.signal);
     
     clearTimeout(timeoutId);
 
@@ -89,6 +103,7 @@ export const checkApiKey = async (apiKey: string): Promise<{ success: boolean; m
     
     return { success: true, message: 'Connection Successful' };
   } catch (e: any) {
+    clearTimeout(timeoutId);
     return { success: false, message: e.name === 'AbortError' ? 'Connection Timeout' : 'Network/CORS Error' };
   }
 };

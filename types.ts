@@ -38,6 +38,11 @@ export interface AppSettings {
 
   autoRotateLanguage: boolean;
   rotateInterval: number; // Seconds
+  
+  // New Features
+  fetchInterval: number; // Seconds
+  theme: 'dark' | 'light';
+  adminPin: string;
 }
 
 export interface Translation {
