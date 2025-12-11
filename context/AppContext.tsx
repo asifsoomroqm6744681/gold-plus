@@ -83,7 +83,11 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
     try {
         const savedData = localStorage.getItem('gold_data');
         if (savedData) {
-            return JSON.parse(savedData);
+            const parsed = JSON.parse(savedData);
+            // Ensure we have valid numbers
+            if (parsed.priceUSD > 0) {
+                return parsed;
+            }
         }
     } catch (e) {
         console.warn("Failed to load saved gold data", e);
@@ -110,7 +114,8 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
 
   useEffect(() => {
     // Persist prices so we can restore them on reload/offline
-    if (!settings.useManualPrice) {
+    // Always save the current state unless it's completely empty
+    if (goldData.priceUSD > 0 && !settings.useManualPrice) {
         localStorage.setItem('gold_data', JSON.stringify(goldData));
     }
   }, [goldData, settings.useManualPrice]);
@@ -213,7 +218,6 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
     if (isLoading) return;
     
     // Safety check: If manual mode is on, ensure we stick to manual values
-    // (This helps if refreshPrice is called by interval while in manual mode)
     if (settings.useManualPrice) {
         setGoldData(prev => {
             // Only update if values actually changed to prevent re-renders
@@ -233,52 +237,64 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
 
     setIsLoading(true);
 
-    let newGold = goldData.priceUSD;
-    let newSilver = goldData.priceSilverUSD;
+    let newGold = 0;
+    let newSilver = 0;
     let isLive = false;
     let apiError: string | undefined = undefined;
 
     if (settings.isDemoMode) {
       // Small delay to simulate network
       await new Promise(resolve => setTimeout(resolve, 600));
-      newGold = generateDemoPrice(goldData.priceUSD, 2500, 5);
-      newSilver = generateDemoPrice(goldData.priceSilverUSD, 30, 0.2);
+      // Use existing or default base
+      const baseGold = goldData.priceUSD > 0 ? goldData.priceUSD : 2500;
+      const baseSilver = goldData.priceSilverUSD > 0 ? goldData.priceSilverUSD : 30;
+      
+      newGold = generateDemoPrice(baseGold, 2500, 5);
+      newSilver = generateDemoPrice(baseSilver, 30, 0.2);
     } else {
       const apiData = await fetchLivePrices(settings.apiKey);
       if (apiData.gold) {
         newGold = apiData.gold;
-        newSilver = apiData.silver || newSilver; // keep old silver if fail
+        newSilver = apiData.silver || (goldData.priceSilverUSD > 0 ? goldData.priceSilverUSD : 30);
         isLive = true;
       } else {
         // API Failed
         apiError = apiData.error || 'Connection Failed';
         
-        // IMPORTANT: Do not overwrite data with demo values if we have valid saved data
-        // Only generate demo data if we are completely at 0 or default
-        if (newGold === 2500 && newSilver === 30 && goldData.lastUpdated < Date.now() - 1000 * 60 * 60) {
-             // If data is stale or default, fallback to demo-like generation so user sees something
-             newGold = generateDemoPrice(goldData.priceUSD, 2500, 5);
-             newSilver = generateDemoPrice(goldData.priceSilverUSD, 30, 0.2);
-        } else {
-            // Keep existing values (Persistence)
+        // CRITICAL: Restore exact previous state. 
+        // Do not use demo data and do not reset to 0.
+        if (goldData.priceUSD > 0) {
             newGold = goldData.priceUSD;
             newSilver = goldData.priceSilverUSD;
+        } else {
+            // Only if we have ABSOLUTELY no data (first load ever + no internet)
+            // fallback to default to avoid breaking UI math
+            newGold = 2500;
+            newSilver = 30;
         }
       }
     }
 
-    const trend = goldData.priceUSD === 0 ? 0 : ((newGold - goldData.priceUSD) / goldData.priceUSD) * 100;
-    const trendSilver = goldData.priceSilverUSD === 0 ? 0 : ((newSilver - goldData.priceSilverUSD) / goldData.priceSilverUSD) * 100;
+    // Calculate Trend (avoid div by zero)
+    const prevGold = goldData.priceUSD > 0 ? goldData.priceUSD : newGold;
+    const prevSilver = goldData.priceSilverUSD > 0 ? goldData.priceSilverUSD : newSilver;
 
-    setGoldData({
+    const trend = prevGold === 0 ? 0 : ((newGold - prevGold) / prevGold) * 100;
+    const trendSilver = prevSilver === 0 ? 0 : ((newSilver - prevSilver) / prevSilver) * 100;
+
+    setGoldData(prev => ({
       priceUSD: newGold,
       priceSilverUSD: newSilver,
+      // If we failed, keep the OLD timestamp so user knows data is stale? 
+      // Or update timestamp to show we checked? 
+      // Usually better to show when the data was actually valid.
+      // But for "Last Check", we update. Let's update timestamp but show error badge.
       lastUpdated: Date.now(),
-      trend,
-      trendSilver,
+      trend: isNaN(trend) ? 0 : trend,
+      trendSilver: isNaN(trendSilver) ? 0 : trendSilver,
       isLive,
       apiError
-    });
+    }));
     
     setIsLoading(false);
   };

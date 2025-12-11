@@ -12,7 +12,10 @@ const robustFetch = async (url: string, signal: AbortSignal): Promise<Response> 
   // 1. Try Direct Fetch
   try {
     const response = await fetch(url, { signal });
-    return response;
+    if (response.ok) return response;
+    // If not OK (e.g. 403, 500), return it so we can handle API errors. 
+    // If it's a CORS opaque response (type: opaque), fetch usually throws or returns status 0.
+    if (response.status !== 0) return response; 
   } catch (error: any) {
     if (error.name === 'AbortError') throw error;
     // Silent failure for direct fetch (CORS block), proceed to proxy
@@ -29,17 +32,22 @@ const robustFetch = async (url: string, signal: AbortSignal): Promise<Response> 
   }
 
   // 3. Try Secondary Proxy (allorigins.win) - Fallback
-  // Note: This returns the raw content of the URL
-  const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-  return fetch(proxyUrl2, { signal });
+  try {
+    const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl2, { signal });
+    return response;
+  } catch (error: any) {
+    // If this is the last attempt, we throw the error to be caught by the main handler
+    throw error; 
+  }
 };
 
 export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | null, silver: number | null, error?: string }> => {
   if (!apiKey) return { gold: null, silver: null, error: 'Missing API Key' };
   
   const controller = new AbortController();
-  // Increased timeout to 20s to accommodate multiple proxy attempts
-  const timeoutId = setTimeout(() => controller.abort(), 20000); 
+  // Increased timeout to 25s to accommodate multiple proxy attempts
+  const timeoutId = setTimeout(() => controller.abort(), 25000); 
 
   try {
     // MetalPriceAPI returns rates relative to USD.
@@ -49,11 +57,11 @@ export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | 
     
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-        let errorMsg = `HTTP Error ${response.status}`;
-        if (response.status === 403) errorMsg = 'Invalid Key (403)';
-        if (response.status === 429) errorMsg = 'Limit Exceeded (429)';
-        if (response.status === 401) errorMsg = 'Unauthorized (401)';
+    if (!response || !response.ok) {
+        let errorMsg = response ? `HTTP Error ${response.status}` : 'Network Error';
+        if (response?.status === 403) errorMsg = 'Invalid Key (403)';
+        if (response?.status === 429) errorMsg = 'Limit Exceeded (429)';
+        if (response?.status === 401) errorMsg = 'Unauthorized (401)';
         return { gold: null, silver: null, error: errorMsg };
     }
 
@@ -85,14 +93,14 @@ export const fetchLivePrices = async (apiKey: string): Promise<{ gold: number | 
     clearTimeout(timeoutId);
     
     let msg = 'Network Error';
-    if (error.name === 'AbortError') {
+    if (error.name === 'AbortError' || error.message?.includes('aborted')) {
         msg = 'Connection Timeout';
-    } else if (error.message) {
-        msg = error.message;
+        // Suppress console error for expected timeouts/aborts
+    } else {
+        msg = error.message || 'Failed to fetch';
+        console.error("API Fetch Failed:", msg);
     }
     
-    // Only log actual failures, not expected fallback warnings
-    console.error("API Fetch Failed:", msg);
     return { gold: null, silver: null, error: msg };
   }
 };
@@ -111,8 +119,8 @@ export const checkApiKey = async (apiKey: string): Promise<{ success: boolean; m
     
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
-        return { success: false, message: `HTTP Error: ${res.status}` };
+    if (!res || !res.ok) {
+        return { success: false, message: `HTTP Error: ${res?.status || 'Unknown'}` };
     }
 
     const data = await res.json();
@@ -124,7 +132,9 @@ export const checkApiKey = async (apiKey: string): Promise<{ success: boolean; m
     return { success: true, message: 'Connection Successful' };
   } catch (e: any) {
     clearTimeout(timeoutId);
-    const msg = e.name === 'AbortError' ? 'Connection Timeout' : 'Network/CORS Error';
+    const msg = (e.name === 'AbortError' || e.message?.includes('aborted')) 
+        ? 'Connection Timeout' 
+        : 'Network/CORS Error';
     return { success: false, message: msg };
   }
 };
